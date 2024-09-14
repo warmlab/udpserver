@@ -1,6 +1,9 @@
+use std::mem::transmute;
+//use std::convert::{TryFrom, TryInto};
+
 #[repr(u8)]
 #[allow(non_camel_case_types)]
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum MessageType {
     MSG_UNKNOWN = 0x00,                // Unknown type
     MSG_CLIENT_CONNECT,                // Client connection message
@@ -71,9 +74,6 @@ pub enum MessageType {
 
     MSG_MAX_TYPE = 0xFF,
 }
-
-//use std::convert::{TryFrom, TryInto};
-use std::mem::transmute;
 
 impl MessageType {
   pub fn try_from_byte(value: u8) -> MessageType {
