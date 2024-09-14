@@ -28,8 +28,8 @@ pub struct MessageHead {
 pub struct Message {
       pub head: MessageHead,
     
-      body: Box<Vec<u8>>, // message body
-      end_flag: [u8; 2],   // the end flag of the message
+      pub body: Box<Vec<u8>>, // message body
+      pub end_flag: [u8; 2],   // the end flag of the message
       pub meet_end: bool,      // used in serializing, true if the message was analysised correctly
 }
 
@@ -136,7 +136,7 @@ impl Message {
                     }
                 } else {
                     self.body.append(&mut bytes[index+MESSAGE_HEAD_LEN..length].to_vec());
-                    return (index, length);
+                    return (index, length - index);
                 }
             }
         }
@@ -147,14 +147,22 @@ impl Message {
     pub fn append_bytes(&mut self, bytes: &[u8], length: usize) -> usize {
         let body_len = self.body.len();
 
-        if length > self.head.body_len as usize - body_len {
+        if length > self.head.body_len as usize - body_len + 1 {
             if !self.meet_end {
                 self.body.append(&mut bytes[..self.head.body_len as usize - body_len].to_vec());
             }
-            self.meet_end = bytes[self.head.body_len as usize - self.body.len()] == MESSAGE_END[0] &&
-                            bytes[self.head.body_len as usize - self.body.len() + 1] == MESSAGE_END[1];
+            let index = self.head.body_len as usize - body_len; 
+            if bytes[index] == MESSAGE_END[0] &&
+                bytes[index + 1] == MESSAGE_END[1] {
+                //self.meet_end = bytes[self.head.body_len as usize - self.body.len()] == MESSAGE_END[0] &&
+                //                bytes[self.head.body_len as usize - self.body.len() + 1] == MESSAGE_END[1];
 
-            self.head.body_len as usize - body_len + 2
+                self.meet_end = true;
+                index + 2
+            } else {
+                self.meet_end = false;
+                index
+            }
         } else {
             if !self.meet_end {
                 self.body.append(&mut bytes.to_vec());

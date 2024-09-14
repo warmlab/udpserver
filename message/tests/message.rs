@@ -148,4 +148,64 @@ mod message_tests {
         });
         assert!(!m.meet_end);
     }
+
+    #[test]
+    fn test_append_bytes() {
+        let mut m: Message = Message::new();
+        let buf: [u8; 18] = [0x4A, 0x4B, 0x3A, 0x01, 0x02, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10];
+        let (index, length) = m.set_bytes(&buf, buf.len());
+        assert_eq!(index, 2);
+        assert_eq!(length, 16);
+        assert_eq!(m.head, MessageHead {
+            begin_flag: 0x3Au8,
+            send_terminal_type: 1,
+            recv_terminal_type: 2,
+            version: 1,
+            message_type: MessageType::MSG_CLIENT_CONNECT,
+            data_type: 1,
+            reserv: [0, 0, 0, 0, 0, 0, 0, 0],
+            body_len: 0x10
+        });
+        assert!(!m.meet_end);
+        let buf: [u8; 10] = [0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C];
+        let length = m.append_bytes(&buf, buf.len());
+        assert_eq!(length, 10);
+        let body_result: Box<Vec<u8>> = Box::new(vec![0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C]);
+        assert_eq!(m.body, body_result);
+        assert!(!m.meet_end);
+        let length = m.append_bytes(&buf, buf.len());
+        assert_eq!(length, 6);
+        assert!(!m.meet_end);
+
+    }
+
+    #[test]
+    fn test_append_bytes2() {
+        let mut m: Message = Message::new();
+        let buf: [u8; 18] = [0x4A, 0x4B, 0x3A, 0x01, 0x02, 0x01, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10];
+        let (index, length) = m.set_bytes(&buf, buf.len());
+        assert_eq!(index, 2);
+        assert_eq!(length, 16);
+        assert_eq!(m.head, MessageHead {
+            begin_flag: 0x3Au8,
+            send_terminal_type: 1,
+            recv_terminal_type: 2,
+            version: 1,
+            message_type: MessageType::MSG_CLIENT_CONNECT,
+            data_type: 1,
+            reserv: [0, 0, 0, 0, 0, 0, 0, 0],
+            body_len: 0x10
+        });
+        assert!(!m.meet_end);
+        let buf: [u8; 10] = [0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x0D, 0x0A, 0x6C, 0x6C];
+        let length = m.append_bytes(&buf, buf.len());
+        assert_eq!(length, 10);
+        let body_result: Box<Vec<u8>> = Box::new(vec![0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x6C, 0x0D, 0x0A, 0x6C, 0x6C]);
+        assert_eq!(m.body, body_result);
+        assert!(!m.meet_end);
+        let length = m.append_bytes(&buf, buf.len());
+        assert_eq!(length, 8);
+        assert!(m.meet_end);
+
+    }
 }
