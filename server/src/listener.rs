@@ -1,23 +1,16 @@
-//mod thread;
-//mod processor;
-
 use std::net::SocketAddr;
 use std::net::UdpSocket;
 use std::io::Error as IOError;
 
-
-//use mio::net::UdpSocket;
-//use mio::{Interest, Events, Poll, Token};
 use log::{info, warn, error};
 
-use message::{Message, MessageHandler};
+use message::Message;
 use crate::thread::ThreadPool;
 use crate::processor::Processor;
 
 pub struct Listener {
     pool: ThreadPool,
     socket: Option<UdpSocket>,
-    //events: Events,
     message: Message
 }
 
@@ -36,7 +29,6 @@ impl Listener {
             },
 
             // Create storage for events
-            //events: Events::with_capacity(128),
             message: Message::new()
         }
     }
@@ -44,15 +36,12 @@ impl Listener {
     pub fn start(&mut self) -> Result<(), IOError>{
         let mut buf = [0u8; 1024];
         let mut offset: usize = 0;
-        
-        let mut index: usize = 0;
-        let mut len: usize = 0;
 
         //info!("UDP server listening on {}", self.ip_address);
 
         loop {
             // Poll for events
-            info!("begin listening...");
+            info!("{} begin listening...", env!("CARGO_PKG_NAME"));
 
             // Process each event
             if let Some(&mut sock) = &self.socket.as_ref().as_mut() {
@@ -63,33 +52,13 @@ impl Listener {
                         offset = self.move_bytes(&mut buf, offset, amt, index, len);
 
                         if self.message.complete() {
-                            let msg = self.message.clone();
+                            let msg: Message = self.message.clone();
+                            self.message.clear(); // clear the message
                             self.pool.execute(move || {
-                                let mut processor = Processor::new();
-                                processor.handle_message(msg, src);
+                                let processor: Processor = Processor::new();
+                                processor.process(msg, src);
                             });
                         }
-                        /*
-                        if self.message.empty() {
-                            if Message::enough_bytes_for_head(amt + offset) { // compare to the length of message head
-                                (index, len) = self.message.set_bytes(&buf, amt + offset);
-                                offset = self.move_bytes(&mut buf, offset, amt, index, len);
-                            } else {
-                                offset += amt;
-                            }
-                        } else {
-                            len = self.message.append_bytes(&buf, amt + offset);
-                            offset = self.move_bytes(&mut buf, offset, amt, 0, len);
-                        }
-
-                        if self.message.complete() {
-                            let msg = self.message.clone();
-                            // copy the message and process the message in another thread
-                            self.pool.execute(move || {
-                                // handle the message
-                                Processor::handle_message(msg, src);
-                            });
-                        } */
                     },
                     Err(e) => {
                         error!("Error receiving from socket: {:?}", e);
@@ -112,7 +81,7 @@ impl Listener {
             (0, len)
         }
     }
-    
+
     fn move_bytes(&self, buf: &mut [u8], offset: usize, amt: usize, index: usize, len: usize) -> usize {
         /*let mut n = 0;
         for i in len + index .. amt + offset {

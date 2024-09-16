@@ -55,7 +55,7 @@ fn main() -> io::Result<()> {
             // Child process continues execution
         }
         -1 => {
-            eprintln!("Fork failed");
+            eprintln!("process fork failed");
             exit(1);
         }
         _ => {
@@ -75,7 +75,7 @@ fn main() -> io::Result<()> {
             // Second child process continues execution
         }
         -1 => {
-            eprintln!("Fork failed");
+            eprintln!("process fork failed");
             exit(1);
         }
         _ => {
@@ -102,7 +102,7 @@ fn main() -> io::Result<()> {
     let formatter = Formatter3164 {
         facility: Facility::LOG_DAEMON,
         hostname: None,
-        process: "udpserver".into(),
+        process: env!("CARGO_PKG_NAME").into(),
         pid: 0,
     };
 
@@ -111,17 +111,9 @@ fn main() -> io::Result<()> {
         .map(|()| log::set_max_level(log::LevelFilter::Info))
         .expect("Could not set logger");
 
-    info!("Daemon started");
+    info!("{} daemon started", env!("CARGO_PKG_NAME"));
     
-    let server: Server = Server::new("test server", "0.0.0.0:7070", 7070);
+    let server: Server = Server::new(env!("CARGO_PKG_NAME"), "0.0.0.0:7070", 7070);
     
     server.start()
-
-    /*
-    // Daemon loop
-    loop {
-        // Your daemon logic goes here
-        log::info!("Daemon is running...");
-        thread::sleep(Duration::from_secs(60));
-    }*/
 }

@@ -8,7 +8,5 @@ libc = "0.2"
 log = "0.4"
 syslog = "7.0"
 format-bytes = "0.3"
-mio = { version="0.8", features = ["os-poll", "net"] }
-daemonize = "0.5"
 
 message = { path = "../message" }

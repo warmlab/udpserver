@@ -6,7 +6,7 @@ mod handler;
 pub use types::MessageType;
 pub use message::{MessageHead, Message};
 pub use status::StatusType;
-pub use handler::MessageHandler;
+pub use handler::{Handler, MessageHandler};
 
 pub use message::{MESSAGE_BEGIN, MESSAGE_FILL_LEN, MESSAGE_END};
 

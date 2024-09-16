@@ -175,6 +175,18 @@ impl Message {
     pub fn enough_bytes_for_head(length: usize) -> bool {
         length >= MESSAGE_HEAD_LEN
     }
+
+    pub fn clear(&mut self) {
+        self.head.begin_flag = 0x00u8;
+        self.head.send_terminal_type = 0x00u8;
+        self.head.recv_terminal_type = 0x00u8;
+        self.head.version = 0x00u8;
+        self.head.message_type = MessageType::MSG_UNKNOWN;
+        self.head.data_type = 0x00u8;
+        //std::slice::bytes::copy_memory(self.head.reserv, bytes[index+6..index+6+MESSAGE_FILL_LEN]);
+        self.head.reserv = [0u8; MESSAGE_FILL_LEN];
+        self.head.body_len = 0x00u16;
+    }
     
     pub fn empty(&self) -> bool {
         self.head.begin_flag == MESSAGE_BEGIN

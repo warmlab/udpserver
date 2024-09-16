@@ -207,5 +207,7 @@ mod message_tests {
         assert_eq!(length, 8);
         assert!(m.meet_end);
 
+        println!("{}, {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
+
     }
 }
